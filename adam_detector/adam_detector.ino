@@ -16,7 +16,8 @@ int sensorReadings[NUM_READINGS];
 // Use millis() to limit the frequency of Adam checks
 unsigned long currentMillis = 0;
 unsigned long previousMillis = 0;
-unsigned long adamCheckInterval = 10000;
+unsigned long adamCheckInterval = 1000;
+boolean firstRun = true;
 
 void setup() {
   pinMode(LED_HERE, OUTPUT);
@@ -24,8 +25,15 @@ void setup() {
 }
 
 void loop() {
-  currentMillis = millis();
+  // The IR sensor datasheet says the first measurement takes place in 38.3 ms +/- 9.6 ms.
+  // The output is unstable until 5 ms after this first measurement takes place.
+  if (firstRun) {
+    firstRun = false;
+    delay(50);
+  }
   
+  currentMillis = millis();
+
   if (previousMillis == 0 || currentMillis - previousMillis > adamCheckInterval) {
     previousMillis = currentMillis;
 
@@ -46,7 +54,7 @@ boolean isAdamHere() {
   for (int index = 0; index < NUM_READINGS; index++) {
     total = total + analogRead(IR_READ);
 
-    delay(20);
+    delay(10);
   }
 
   // calculate the average:
